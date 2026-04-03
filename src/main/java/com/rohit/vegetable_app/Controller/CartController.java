@@ -2,8 +2,9 @@ package com.rohit.vegetable_app.Controller;
 
 import com.rohit.vegetable_app.DTO.AddToCartRequest;
 import com.rohit.vegetable_app.DTO.UpdateCartRequest;
-import com.rohit.vegetable_app.Model.Card;
+import com.rohit.vegetable_app.Model.Cart;
 import com.rohit.vegetable_app.service.CartService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,37 +19,54 @@ public class CartController {
         this.cartService = cartService;
     }
 
+    // ✅ GET CART (JWT)
     @GetMapping
-    public Card getCart(@RequestParam String userId) {
-        return cartService.getCart(userId);
+    public ResponseEntity<Cart> getCart(HttpServletRequest request) {
+
+        String email = (String) request.getAttribute("email");
+
+        return ResponseEntity.ok(cartService.getCart(email));
     }
 
+    // ✅ ADD TO CART (JWT)
     @PostMapping("/add")
-    public ResponseEntity<Card> addToCart(@Valid @RequestBody AddToCartRequest request) {
-        Card cart = cartService.addToCart(request);
-        return ResponseEntity.ok(cart);
+    public ResponseEntity<Cart> addToCart(
+            HttpServletRequest request,
+            @Valid @RequestBody AddToCartRequest req) {
+
+        String email = (String) request.getAttribute("email");
+
+        return ResponseEntity.ok(cartService.addToCart(email, req));
     }
 
-
-
+    // ✅ UPDATE CART (JWT)
     @PutMapping("/update")
-    public ResponseEntity<Card> updateCart(@Valid @RequestBody UpdateCartRequest request) {
-        return ResponseEntity.ok(cartService.updateQuantity(request));
+    public ResponseEntity<Cart> updateCart(
+            HttpServletRequest request,
+            @Valid @RequestBody UpdateCartRequest req) {
+
+        String email = (String) request.getAttribute("email");
+
+        return ResponseEntity.ok(cartService.updateQuantity(email, req));
     }
 
-
-
-    @DeleteMapping("/remove/{userId}/{productId}")
-    public ResponseEntity<Card> removeItem(
-            @PathVariable String userId,
+    // ✅ REMOVE ITEM (JWT)
+    @DeleteMapping("/remove/{productId}")
+    public ResponseEntity<Cart> removeItem(
+            HttpServletRequest request,
             @PathVariable String productId) {
 
-        return ResponseEntity.ok(cartService.removeItem(userId, productId));
+        String email = (String) request.getAttribute("email");
+
+        return ResponseEntity.ok(cartService.removeItem(email, productId));
     }
 
-
+    // ✅ CLEAR CART (JWT)
     @DeleteMapping("/clear")
-    public ResponseEntity<Card> clearCart(@RequestParam String userId) {
-        return ResponseEntity.ok(cartService.clearCart(userId));
+    public ResponseEntity<Cart> clearCart(HttpServletRequest request) {
+
+        String email = (String) request.getAttribute("email");
+
+        return ResponseEntity.ok(cartService.clearCart(email));
     }
 }

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Document(collection = "carts")
-public class Card {
+public class Cart {
 
     @Id
     private String id;

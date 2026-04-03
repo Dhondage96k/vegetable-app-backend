@@ -6,6 +6,7 @@ import com.rohit.vegetable_app.service.OrderService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -14,58 +15,47 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    // ✅ Constructor Injection (no @Autowired)
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
     }
 
-    // ================================
-    // ✅ PLACE ORDER
-    // ================================
-   // place order - for items in card
+    private String getEmail(HttpServletRequest request) {
+        String email = (String) request.getAttribute("email");
+        if (email == null) {
+            throw new RuntimeException("Unauthorized: Invalid JWT");
+        }
+        return email;
+    }
+
     @PostMapping("/place")
     public ResponseEntity<Order> placeOrder(
-            @RequestParam String userId,
+            HttpServletRequest request,
             @RequestParam String address) {
 
-        return ResponseEntity.ok(orderService.placeOrder(userId, address));
+        return ResponseEntity.ok(orderService.placeOrder(getEmail(request), address));
     }
 
-    // ================================
-    // ❌ CANCEL ORDER
-    // ================================
     @DeleteMapping("/cancel")
     public ResponseEntity<Order> cancelOrder(
-            @RequestParam String orderId,
-            @RequestParam String userId) {
+            HttpServletRequest request,
+            @RequestParam String orderId) {
 
-        return ResponseEntity.ok(orderService.cancelOrder(orderId, userId));
+        return ResponseEntity.ok(orderService.cancelOrder(orderId, getEmail(request)));
     }
 
-    // ================================
-    // 📜 ORDER HISTORY
-    // ================================
     @GetMapping("/history")
-    public ResponseEntity<List<Order>> getOrderHistory(
-            @RequestParam String userId) {
-
-        return ResponseEntity.ok(orderService.getOrderHistory(userId));
+    public ResponseEntity<List<Order>> history(HttpServletRequest request) {
+        return ResponseEntity.ok(orderService.getOrderHistory(getEmail(request)));
     }
 
-    // ================================
-    // 🔍 GET SINGLE ORDER
-    // ================================
     @GetMapping("/{orderId}")
     public ResponseEntity<Order> getOrder(
-            @PathVariable String orderId,
-            @RequestParam String userId) {
+            HttpServletRequest request,
+            @PathVariable String orderId) {
 
-        return ResponseEntity.ok(orderService.getOrder(orderId, userId));
+        return ResponseEntity.ok(orderService.getOrder(orderId, getEmail(request)));
     }
 
-    // ================================
-    // 👨‍💼 ADMIN UPDATE STATUS
-    // ================================
     @PutMapping("/status")
     public ResponseEntity<Order> updateStatus(
             @RequestParam String orderId,
@@ -74,18 +64,15 @@ public class OrderController {
         return ResponseEntity.ok(orderService.updateStatus(orderId, status));
     }
 
-
-
-    // buy now by clicking buy button without addint card
     @PostMapping("/buy-now")
     public ResponseEntity<Order> buyNow(
-            @RequestParam String userId,
+            HttpServletRequest request,
             @RequestParam String productId,
             @RequestParam int quantity,
             @RequestParam String address) {
 
         return ResponseEntity.ok(
-                orderService.buyNow(userId, productId, quantity, address)
+                orderService.buyNow(getEmail(request), productId, quantity, address)
         );
     }
 }
